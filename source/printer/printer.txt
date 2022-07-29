@@ -1,0 +1,80 @@
+#
+# Created by scaled
+#
+
+@name printer
+@inputs [Base Up]:entity Text:string
+@persist Size:vector Thick PaperHeight
+
+if (first() | duped() | dupefinished()) {
+    #ifndef entity:wirelink()
+    print("\"wiring\" addition is disabled. Printer can't work properly.")
+    #endif
+    #ifndef find()
+    print("\"find\" addition is disabled. Printer can't work properly.")
+    #endif
+    
+    PaperHeight = 4
+    
+    #ifdef find()
+    findIncludeClass("gmod_wire_textscreen")
+    findIncludeClass("gmod_wire_egp")
+    findIncludeClass("gmod_wire_consolescreen")
+    #endif
+}
+
+if (changed(Base) | changed(Up)) {
+    Size = Base:boxSize()
+    Thick = Size[3]
+    if (Up) {
+        Size[3] = Base:toLocal(Up:pos())[3] + Thick
+    }
+    else {
+        Size[3] = Size[1]
+    }
+    Size -= vec(Thick * 2)
+}
+
+if (Base & ~Text & Text) {
+    #ifdef find()
+    #ifdef entity:wirelink()
+    local Pos = Base:toWorld(vec(0, 0, (Size[3] + Thick) / 2) + Base:boxCenter())
+    
+    findInSphere(Pos, Size[3] / 2)
+    findSortByDistance(Base:boxCenterW())
+    
+    if (find()) {
+        local Paper = find():wirelink()
+        local Type = find():type()
+        
+        switch (Type) {
+            case "gmod_wire_textscreen",
+                Paper["String", string] = Text
+                break
+            
+            case "gmod_wire_egp",
+                Paper:egpClear()
+                Paper:egpResolution(vec2(), vec2(512))
+                Paper:egpTextLayout(1, Text, vec2(), vec2(512))
+                break
+            
+            case "gmod_wire_consolescreen",
+                Paper[2041] = 1
+                Paper:writeString(Text, 0, 0)
+                break
+        }
+        
+        find():setPos(Base:toWorld(
+            vec(-Size[1] / 2, 0, Size[3] + Thick * 1.5) + Base:boxCenter()
+            +find():boxSize():setY(0) / 2 - find():boxCenter()
+            +vec(0, 0, PaperHeight)
+        ))
+        find():setAng(Base:angles())
+    }
+    #else
+    print(Text)
+    #endif
+    #else
+    print(Text)
+    #endif
+}

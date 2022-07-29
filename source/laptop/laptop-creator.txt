@@ -1,0 +1,59 @@
+#
+# Created by scaled
+#
+
+@name laptop-creator
+@inputs [Body FrontScr BackScr]:entity
+@persist ANGLE
+@persist State Pos:vector
+
+if (tickClk()) {
+    State++
+    switch (State) {
+        case 1,
+            Pos = entity():pos()
+            Body:setPos(Pos - Body:boxCenter())
+            Body:setAng(ang())
+            break
+        
+        case 2,
+            local Angle = ang(90 - ANGLE, 0, 0)
+            FrontScr:setPos(Body:toWorld(
+                +vec(-Body:boxSize()[1] / 2, 0, 0)
+                +(-FrontScr:boxSize():setY(0) / 2 - FrontScr:boxCenter()):rotate(Angle)
+                +Body:boxCenter())
+            )
+            break
+        
+        case 3,
+            BackScr:setPos(FrontScr:pos())
+            BackScr:setAng(FrontScr:toWorld(ang(0, 0, 180)))
+            break
+        
+        case 4,
+            #ifdef weld(entity, entity)
+            weld(Body, FrontScr)
+            weld(FrontScr, BackScr)
+            weld(Body, BackScr)
+            break
+            #else
+            State++
+            # no break
+            #endif
+        
+        case 5,
+            Body:setMass(15)
+            FrontScr:setMass(5)
+            BackScr:setMass(0)
+            break
+        
+        case 6,
+            selfDestruct()
+            break
+    }
+}
+elseif (Body & FrontScr & BackScr) {
+    runOnTick(1)
+    
+    ANGLE = 10
+}

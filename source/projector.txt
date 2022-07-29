@@ -1,0 +1,80 @@
+#
+# Created by scaled and CornerPin
+#
+
+@name projector
+@model models/hunter/plates/plate05x05.mdl
+@inputs [In Out]:wirelink
+
+@persist OutEntity:entity
+@persist Direction:vector Distance SafeDistance
+@persist Offset:vector OffsetMatrix:matrix
+
+if (~In | ~Out | duped() | dupefinished()) {
+    reset()
+    exit()
+}
+
+if (first()) {
+    if (In & Out) {
+        Out:egpResolution(vec2(), vec2(512))
+        OutEntity = Out:entity()
+        
+        Direction = vec(-1, 0, 0)
+        SafeDistance = 0.5
+        
+        interval(0)
+    }
+}
+
+if (clk()) {
+    #ifdef ranger(number)
+    #ifdef entity:setPos(vector)
+    local Pos0 = Out:egpToWorld(vec2())
+    local PosX = Out:egpToWorld(vec2(512, 0))
+    local PosY = Out:egpToWorld(vec2(0, 512))
+    
+    X = OutEntity:toLocalAxis(PosX - Pos0):normalized()
+    Y = OutEntity:toLocalAxis(PosY - Pos0):normalized()
+    
+    Z = Y:cross(X)
+    
+    Offset = -OutEntity:toLocal(Out:egpToWorld(vec2(256)))
+    OffsetMatrix = transpose(matrix(X, Y, Z))
+    
+    Distance = 10 * max(Pos0:distance(PosX), Pos0:distance(PosY))
+    
+    runOnTick(1)
+    #endif
+    #endif
+    
+    In:egpSaveFrame(1)
+    Out:egpLoadFrame(1)
+    
+    In:egpRunOnQueue(1)
+}
+
+if (egpQueueClk()) {
+    In:egpSaveFrame(1)
+    Out:egpLoadFrame(1)
+}
+
+#ifdef ranger(number)
+#ifdef entity:setPos(vector)
+if (tickClk()) {
+    rangerFilter(OutEntity)
+    local WorldDirection = entity():toWorldAxis(Direction)
+    local Beam = rangerOffset(Distance, entity():pos(), WorldDirection)
+    
+    OutEntity:setPos(Beam:pos() + OutEntity:toWorldAxis(Offset) - SafeDistance * WorldDirection)
+    
+    local SurfaceZ = Beam:hit() ? Beam:hitNormal() : -WorldDirection
+    local SurfaceX = SurfaceZ:cross(vec(0, 0, -1)):normalized()
+    local SurfaceY = SurfaceX:cross(SurfaceZ)
+    
+    local SurfaceMatrix = matrix(SurfaceX, SurfaceY, SurfaceZ)
+    
+    OutEntity:setAng((SurfaceMatrix * OffsetMatrix):toAngle())
+}
+#endif
+#endif

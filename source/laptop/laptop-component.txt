@@ -1,0 +1,34 @@
+#
+# Created by scaled
+#
+
+@name laptop-component
+
+#Entity mass
+foreach (I, Entity:entity = entity():isConstrainedTo():getConstraints()) {
+    if (Entity:type() == "gmod_wire_expression2") {
+        Entity:setMass(0)
+    }
+}
+
+#ifdef holoCreate(number)
+if (holoModelAny() & holoClipsAvailable() >= 1) {
+    local Angle = 6.1
+    
+    #Hologramm
+    local Base = entity():isConstrainedTo()
+    
+    local Holo = holoCreate(1)
+    holoModel(1, "models/beer/wiremod/keyboard.mdl")
+    holoScale(1, vec(1.2, 1.3, 2))
+    holoParent(1, Base)
+    holoDisableShading(1, 1)
+    
+    holoPos(1, Base:toWorld(vec(3, 0.5, -(2.19 + 2.60) / 2 + 0.15)))
+    holoAng(1, Base:toWorld(ang(-Angle, 0, 0)))
+    
+    #Holo clip
+    holoClipEnabled(1, 1)
+    holoClip(1, Holo:toLocal(Base:toWorld(vec(0, 0, Base:aabbMax()[3]))), Holo:toLocalAxis(Base:up()), 0)
+}
+#endif

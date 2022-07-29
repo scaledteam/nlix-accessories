@@ -1,0 +1,12 @@
+#
+# Created by scaled
+#
+
+@name fake-nlix
+@inputs [Port1 Port2]:wirelink
+
+Port1:egpClear()
+Port1:egpResolution(vec2(), vec2(512))
+Port1:egpTextLayout(1, "Replace \"fake-nlix\" with nlix/nlix.txt", vec2(), vec2(512))
+Port1:egpSize(1, 30)
+Port1:egpAlign(1, 1, 1)

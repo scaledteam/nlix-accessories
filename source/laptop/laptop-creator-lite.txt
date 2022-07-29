@@ -1,0 +1,58 @@
+#
+# Created by scaled
+#
+
+@name laptop-creator-lite
+@inputs [Body Screen]:entity
+@persist ANGLE
+@persist State Pos:vector
+
+if (tickClk()) {
+    State++
+    switch (State) {
+        case 1,
+            #ifdef entity:propFreeze(number)
+            Body:propFreeze(1)
+            Screen:propFreeze(1)
+            #endif
+            break
+        
+        case 2,
+            local Angle = ang(90 - ANGLE, 0, 0)
+            
+            local Size = Body:boxSize() - vec(0.5)
+            local Offset = Body:boxCenter()
+            
+            Screen:setPos(Body:toWorld(
+                vec(-Size[1], 0, Size[3]) / 2 + Offset
+                +(vec(-Size[1], 0, -Size[3]) / 2 - Offset):rotate(Angle)
+            ))
+            
+            Screen:setPos(Pos)
+            Screen:setAng(Body:toWorld(Angle))
+            break
+        
+        case 3,
+            #ifdef weld(entity, entity)
+            weld(Body, Screen)
+            break
+            #else
+            State++
+            # no break
+            #endif
+        
+        case 4,
+            Body:setMass(15)
+            Screen:setMass(5)
+            break
+        
+        case 5,
+            selfDestruct()
+            break
+    }
+}
+elseif (Body & Screen & (Body:model() == Screen:model())) {
+    runOnTick(1)
+    
+    ANGLE = 12
+}

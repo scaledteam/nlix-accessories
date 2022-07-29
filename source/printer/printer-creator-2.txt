@@ -1,0 +1,75 @@
+#
+# Created by scaled
+#
+
+@name printer-creator-2
+@inputs [Base Left Back Right Upstairs]:entity
+@persist Size:vector Thick
+@persist State Pos:vector
+
+if (tickClk()) {
+    State++
+    switch (State) {
+        case 1,
+            Left:setPos(Base:toWorld(vec(0, -Size[2] - Thick, Size[3] - Thick) / 2 + Base:boxCenter() - Left:boxCenter():rotate(ang(90, 0, 90))))
+            Right:setPos(Base:toWorld(vec(0, Size[2] + Thick, Size[3] - Thick) / 2 + Base:boxCenter() - Right:boxCenter():rotate(ang(90, 0, 90))))
+            
+            Left:setAng(Base:toWorld(ang(90, 0, 90)))
+            Right:setAng(Base:toWorld(ang(90, 0, 90)))
+            
+            Back:setPos(Base:toWorld(vec(-Size[1] + Thick, 0, Back:aabbSize()[1] - Thick) / 2) + Base:boxCenter() - Back:boxCenter():rotate(ang(90, 0, 0)))
+            Back:setAng(Base:toWorld(ang(90, 0, 0)))
+            
+            Upstairs:setPos(Base:toWorld(vec(0, 0, Size[3] / 2)))
+            Upstairs:setAng(Base:angles())
+            
+            #ifdef entity:propFreeze(number)
+            Base:propFreeze(1)
+            Left:propFreeze(1)
+            Right:propFreeze(1)
+            Back:propFreeze(1)
+            Upstairs:propFreeze(1)
+            #endif
+            break
+        
+        case 2,
+            #ifdef weld(entity, entity)
+            weld(Base, Left)
+            weld(Base, Right)
+            weld(Base, Back)
+            
+            weld(Base, Upstairs)
+            
+            weld(Upstairs, Left)
+            weld(Upstairs, Right)
+            weld(Upstairs, Back)
+            #endif
+            #ifdef noCollide(entity, entity)
+            noCollide(Base, Left)
+            noCollide(Base, Right)
+            noCollide(Base, Back)
+            
+            noCollide(Base, Upstairs)
+            
+            noCollide(Upstairs, Left)
+            noCollide(Upstairs, Right)
+            noCollide(Upstairs, Back)
+            
+            noCollide(Left, Back)
+            noCollide(Back, Right)
+            #endif
+            break
+        
+        case 3,
+            selfDestruct()
+            break
+    }
+}
+elseif (Base & Left & Right & Back & Upstairs) {
+    runOnTick(1)
+    
+    #Size = vec(Base:boxSize()[1], Base:boxSize()[2], Left:boxSize()[1])
+    Size = vec(Base:aabbSize()[1], Base:aabbSize()[2], Left:aabbSize()[1])
+    Thick = Base:aabbSize()[3]
+}
+
